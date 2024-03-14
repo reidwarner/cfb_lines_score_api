@@ -5,6 +5,13 @@ from flask import Flask, jsonify
 app = Flask(__name__)
 
 
+@app.route('/')
+def home():
+    return ("College sports odds and scores API."
+            "path /odds for current odds."
+            "path /scores for final scores.")
+
+
 @app.route('/odds')
 def get_odds():
 
