@@ -88,7 +88,7 @@ def get_scores():
     j = 0
     k = 0
     m = 0
-    print(scores)
+
     for i in range(0, len(odds), 6):
         game_time = game_date_times[m].text.strip()[:-5].strip()
 
