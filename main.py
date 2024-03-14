@@ -4,11 +4,12 @@ from flask import Flask, jsonify
 
 app = Flask(__name__)
 
-@app.route('/')
-def cfb_lines_scores_api():
+
+@app.route('/odds')
+def get_odds():
 
     # Web Scraper for upcoming week of games
-    url = "https://www.lines.com/betting/ncaaf/odds/best-line/0?week=5"
+    url = "https://www.lines.com/betting/ncaab/odds"
     soup = requests.get(url)
     doc = BeautifulSoup(soup.text, "html.parser")
 
@@ -29,7 +30,7 @@ def cfb_lines_scores_api():
         team_away = teams[j].text.strip()[:-6].strip()
         team_home = teams[j + 1].text.strip()[:-6].strip()
         game = f'{team_away} vs. {team_home}'
-        game_time = game_date_times[k].text.strip()
+        game_time = game_date_times[k].text.strip()[:-5].strip()
         j += 2
         k += 1
 
@@ -66,6 +67,65 @@ def cfb_lines_scores_api():
                            'money line away': ml_away,
                            'money line home': ml_home,
                            }
+    return jsonify(data_dict)
+
+
+@app.route('/scores')
+def get_scores():
+    url = "https://www.lines.com/betting/ncaab/odds"
+    result = requests.get(url)
+    doc = BeautifulSoup(result.text, "html.parser")
+
+    # odds is a list with a bunch of the betting values staggered in the following way: P/S away, P/S payout away, P/S home,
+    # P/S payout home, etc.
+    odds = doc.find_all('div', {'class': "odds-list-val"})
+    teams = doc.find_all('div', {'class': "odds-list-team-title"})
+    scores = doc.find_all('div', {'class': 'team-score team-score-passed'})
+    game_date_times = doc.find_all('div', {'class': "odds-list-section-title"})
+
+    # Loop through to establish all of our variable and add them to the database
+    data_dict = {}
+    j = 0
+    k = 0
+    m = 0
+    print(scores)
+    for i in range(0, len(odds), 6):
+        game_time = game_date_times[m].text.strip()[:-5].strip()
+
+        if game_time == 'Final':
+            # gets team (index 0) and record (index -1)
+            team_away = teams[j].text.strip()[:-6].strip()
+            team_home = teams[j + 1].text.strip()[:-6].strip()
+            game = f'{team_away} vs. {team_home}'
+            score_away = int(scores[k].text.strip())
+            score_home = int(scores[k + 2].text.strip())
+
+            j += 2
+            k += 4
+            m += 1
+
+            if score_away > score_home:
+                win_team = team_away
+            else:
+                win_team = team_home
+
+            point_diff = abs(score_home - score_away)
+
+            total_points = score_away + score_home
+
+            data_dict[game] = {'match': game,
+                               'away team': team_away,
+                               'home team': team_home,
+                               'away score': score_away,
+                               'home score': score_home,
+                               'win team': win_team,
+                               'point diff': point_diff,
+                               'total points': total_points,
+                               }
+        else:
+            j += 2
+            m += 1
+
     return jsonify(data_dict)
 
 

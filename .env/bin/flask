@@ -1,4 +1,4 @@
-#!/Users/reidsingleton/workspace/cfb_lines_scores_api/.env/bin/python3.11
+#!/Users/reidsingleton/workspace/sports_lines_scores_api/.env/bin/python3.11
 # -*- coding: utf-8 -*-
 import re
 import sys
