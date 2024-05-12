@@ -10,10 +10,11 @@ api = Api(app)
 @app.route('/')
 def home():
     return ("College sports odds and scores API."
-            "Use the path /sport to access three different sports. Valid sports are: "
-            "ncaaf, ncaab, mlb."
-            " Path /sport/odds for current odds."
-            " Path /sport/scores for final scores.")
+            " Path /odds for current odds."
+            " Path /scores for final scores."
+            " Use the path /odds/sport or /scores/sport to access three different sports. Valid sports are: "
+            " ncaaf, ncaab, mlb."
+            )
 
 
 class Odds(Resource):
@@ -46,10 +47,9 @@ class Scores(Resource):
         return scraped.scrape_scores()
 
 
+
 api.add_resource(Odds, "/odds/<sport>")
 api.add_resource(Scores, "/scores/<sport>")
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)
