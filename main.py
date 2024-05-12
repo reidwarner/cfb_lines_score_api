@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_restful import Api, Resource
 from scrapers import DataScraper
 from utils import SeasonDates
@@ -9,12 +9,7 @@ api = Api(app)
 
 @app.route('/')
 def home():
-    return ("College sports odds and scores API."
-            " Path /odds for current odds."
-            " Path /scores for final scores."
-            " Use the path /odds/sport or /scores/sport to access three different sports. Valid sports are: "
-            " ncaaf, ncaab, mlb."
-            )
+    return render_template("index.html")
 
 
 class Odds(Resource):
@@ -45,7 +40,6 @@ class Scores(Resource):
         # Run the scores scraper
         scraped = DataScraper(url)
         return scraped.scrape_scores()
-
 
 
 api.add_resource(Odds, "/odds/<sport>")
