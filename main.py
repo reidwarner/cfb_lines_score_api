@@ -1,8 +1,10 @@
 from flask import Flask
+from flask_restful import Api, Resource
 from scrapers import DataScraper
 from utils import SeasonDates
 
 app = Flask(__name__)
+api = Api(app)
 
 
 @app.route('/')
@@ -14,36 +16,39 @@ def home():
             " Path /sport/scores for final scores.")
 
 
-@app.route('/<sport>/odds')
-def get_odds(sport):
+class Odds(Resource):
+    def get(self, sport):
+        # Check if in season
+        season_date = SeasonDates()
+        in_season = season_date.is_in_season(sport)
+        if not in_season:
+            return f"Sorry. {sport} is not in season."
 
-    # Check if in season
-    season_date = SeasonDates()
-    in_season = season_date.is_in_season(sport)
-    if not in_season:
-        return f"Sorry. {sport} is not in season."
-
-    # Run the scraper
-    url = "https://www.lines.com/betting/" + sport + "/odds"
-    scraped = DataScraper(url)
-    return scraped.scrape_odds()
+        # Run the scraper
+        url = "https://www.lines.com/betting/" + sport + "/odds"
+        scraped = DataScraper(url)
+        return scraped.scrape_odds()
 
 
-@app.route('/<sport>/scores')
-def get_scores(sport):
+class Scores(Resource):
+    def get(self, sport):
+        # Check if in season
+        season_date = SeasonDates()
+        in_season = season_date.is_in_season(sport)
+        if not in_season:
+            return f"Sorry. {sport} is not in season."
 
-    # Check if in season
-    season_date = SeasonDates()
-    in_season = season_date.is_in_season(sport)
-    if not in_season:
-        return f"Sorry. {sport} is not in season."
+        # Set correct URL
+        url = "https://www.lines.com/betting/" + sport + "/odds"
 
-    # Set correct URL
-    url = "https://www.lines.com/betting/" + sport + "/odds"
+        # Run the scores scraper
+        scraped = DataScraper(url)
+        return scraped.scrape_scores()
 
-    # Run the scores scraper
-    scraped = DataScraper(url)
-    return scraped.scrape_scores()
+
+api.add_resource(Odds, "/odds/<sport>")
+api.add_resource(Scores, "/scores/<sport>")
+
 
 
 if __name__ == "__main__":
